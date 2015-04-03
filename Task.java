@@ -23,6 +23,7 @@ public class Task implements Parcelable{
         gpsLat = lat;
         gpsLong = lon;
 
+
     }
 
     public Task(Parcel dest){

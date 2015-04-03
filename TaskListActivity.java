@@ -3,7 +3,6 @@ package com.li.tritonia.wildlife;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,57 +13,47 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 
-public class SetupActivity extends Activity {
+public class TaskListActivity extends Activity {
 
     private ListView listView;
     private ArrayAdapter arrayAdapter;
-    private Button newGameBtn;
-    private ArrayList<Hunt> huntList;
-    private ArrayList<String> huntNameList;
+    private Button addTaskBtn;
+    private ArrayList<Task> taskList;
+    private ArrayList<String> taskNameList;
     private int idCount;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_setup);
+        setContentView(R.layout.activity_task_list);
 
-        idCount = MainActivity.dataBase.numberOfHunts();
+        idCount = MainActivity.dataBase.numberOfTasks(1);
 
-        Log.d("HuntCount", Integer.toString(idCount));
-
-        newGameBtn = (Button)findViewById(R.id.newGameButton);
+        addTaskBtn = (Button) findViewById(R.id.addNewTaskButton);
         listView = (ListView)findViewById(R.id.task_list);
 
-        newGameBtn.setOnClickListener(new View.OnClickListener() {
+        addTaskBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent taskList = new Intent(SetupActivity.this, AddHuntActivity.class);
+                Intent addTaskActivity = new Intent(TaskListActivity.this, AddTaskActivity.class);
 
-                startActivity(taskList);
+                startActivity(addTaskActivity);
+
             }
         });
 
     }
 
-    public void initializeHuntList(){
+    public void initializeTaskList(){
 
-        huntList = new ArrayList<Hunt>();
-        huntNameList = new ArrayList<String>();
+        taskNameList = new ArrayList<String>();
 
         for(int i = 0; i <= idCount; i++){
 
-            Hunt obj = new Hunt();
-
-            obj.setHuntId(Integer.parseInt(MainActivity.dataBase.getHuntId(i)));
-            obj.setHuntName(MainActivity.dataBase.getHuntName(i));
-            obj.setHuntDesc(MainActivity.dataBase.getHuntDesc(i));
-
-            huntList.add(obj);
-
             String name = new String();
 
-            name = MainActivity.dataBase.getHuntName(i);
-            huntNameList.add(name);
+            name = MainActivity.dataBase.getTaskName(i, 1);
+            taskNameList.add(name);
         }
 
     }
@@ -73,9 +62,8 @@ public class SetupActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        initializeHuntList();
-
-        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, huntNameList);
+        initializeTaskList();
+        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, taskNameList);
         listView.setAdapter(arrayAdapter);
     }
 

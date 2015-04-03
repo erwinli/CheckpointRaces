@@ -22,6 +22,7 @@ public class MainActivity extends ActionBarActivity {
     ArrayList<Task> taskList;
     private static final String STATE_TASK = "state_task";
     int idCount = 0;
+    public static Database dataBase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +35,17 @@ public class MainActivity extends ActionBarActivity {
             taskList = savedInstanceState.getParcelableArrayList(STATE_TASK);
         }
 
+        this.deleteDatabase("tasks.db");
+
+        dataBase = new Database(this);
+
         taskList = new ArrayList<>();
         gen();
 
         setupBtn = (Button)findViewById(R.id.setupButton);
         playBtn = (Button)findViewById(R.id.playButton);
 
-        final Intent playGame = new Intent(MainActivity.this, GameStartActivity.class);
+        final Intent playGame = new Intent(MainActivity.this, MapActivity.class);
         final Intent setupGame = new Intent(MainActivity.this, SetupActivity.class);
 
         setupGame.putParcelableArrayListExtra("list", taskList);
@@ -58,6 +63,8 @@ public class MainActivity extends ActionBarActivity {
             }
         });
     }
+
+
 
     @Override
     protected void onPause() {
@@ -96,36 +103,15 @@ public class MainActivity extends ActionBarActivity {
     }
 
     public void gen(){
-        Task task = new Task();
-        Task task1 = new Task();
-        Task task2 = new Task();
 
-        task.setTaskID(idCount);
-        task.setTaskname("Task " + Integer.toString(1));
-        task.setTaskdescription("Description " + Integer.toString(1));
-        task.setGpsLat(1.576);
-        task.setGpsLong(1.555);
+        dataBase.insertTaskData(0, 1, "Owl", "Snow", 1.2, 1.5);
+        dataBase.insertTaskData(1, 1, "Bear", "Brown", 1.2, 1.5);
+        dataBase.insertTaskData(2, 1, "Bird", "Blue", 1.2, 1.3);
+        dataBase.insertHuntData(0, "first", "descr");
+        dataBase.insertHuntData(1, "second", "test");
+        dataBase.insertHuntData(2, "second", "test");
+        dataBase.insertHuntData(3, "second", "test");
 
-        idCount++;
-        taskList.add(task);
-
-        task1.setTaskID(idCount);
-        task1.setTaskname("Task " + Integer.toString(2));
-        task1.setTaskdescription("Description " + Integer.toString(2));
-        task1.setGpsLat(1.576);
-        task1.setGpsLong(1.555);
-
-        idCount++;
-        taskList.add(task1);
-
-        task2.setTaskID(idCount);
-        task2.setTaskname("Task " + Integer.toString(3));
-        task2.setTaskdescription("Description " + Integer.toString(3));
-        task2.setGpsLat(1.576);
-        task2.setGpsLong(1.555);
-
-        idCount++;
-        taskList.add(task2);
     }
 
 

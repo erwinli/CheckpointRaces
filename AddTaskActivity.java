@@ -8,7 +8,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,10 +50,9 @@ public class AddTaskActivity extends ActionBarActivity {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         prefs = this.getSharedPreferences("com.li.tritonia.wildlife", Context.MODE_PRIVATE);
         idCount = prefs.getInt("idCount", 0);
-        taskList = this.getIntent().getParcelableArrayListExtra("list");
 
-        Log.d("Pref", Integer.toString(idCount));
-        Log.d("task", taskList.get(1).getTaskdescription());
+
+
 
         //GPS
         locationManager.requestLocationUpdates(
