@@ -9,41 +9,28 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 
 import java.util.ArrayList;
 
 
-public class TaskListActivity extends ActionBarActivity {
+public class GameTaskListActivity extends ActionBarActivity {
 
     private ListView listView;
     private ArrayAdapter arrayAdapter;
-    private Button addTaskBtn;
-    private Button doneBtn;
     private ArrayList<String> taskNameList;
     private int taskIdVal;
     private int huntIdVal;
     private Intent intent;
+    private static int taskComplete;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_task_list);
+        setContentView(R.layout.activity_game_task_list);
 
-        addTaskBtn = (Button) findViewById(R.id.newTaskButton);
-        doneBtn = (Button)findViewById(R.id.doneButton);
         listView = (ListView)findViewById(R.id.task_list);
-    }
 
-    public void initializeTaskList(){
-        taskNameList = new ArrayList<>();
-
-        for(int i = 0; i <= taskIdVal; i++){
-            String name = new String();
-            name = MainActivity.dataBase.getTaskName(i, huntIdVal);
-            taskNameList.add(name);
-        }
 
     }
 
@@ -56,30 +43,11 @@ public class TaskListActivity extends ActionBarActivity {
         taskIdVal = MainActivity.dataBase.numberOfTasks(huntIdVal);
         Log.d("taskNum", String.valueOf(taskIdVal));
 
-        addTaskBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent addTaskActivity = new Intent(TaskListActivity.this, AddTaskActivity.class);
-
-                addTaskActivity.putExtra("huntIdValue", huntIdVal);
-                addTaskActivity.putExtra("taskIdValue", taskIdVal + 1);
-                startActivity(addTaskActivity);
-            }
-        });
-
-        doneBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent returnToSettings = new Intent(TaskListActivity.this, SetupActivity.class);
-
-                startActivity(returnToSettings);
-            }
-        });
-
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent taskListView = new Intent(TaskListActivity.this, UpdateTaskActivity.class);
+
+                Intent taskListView = new Intent(GameTaskListActivity.this, MapActivity.class);
                 taskListView.putExtra("huntIdValue", huntIdVal);
                 taskListView.putExtra("taskIdValue", position);
 
@@ -92,10 +60,20 @@ public class TaskListActivity extends ActionBarActivity {
         listView.setAdapter(arrayAdapter);
     }
 
+    public void initializeTaskList(){
+        taskNameList = new ArrayList<>();
+
+        for(int i = 0; i <= taskIdVal; i++){
+            String name = new String();
+            name = MainActivity.dataBase.getTaskName(i, huntIdVal);
+            taskNameList.add(name);
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_task_list_main, menu);
+        getMenuInflater().inflate(R.menu.menu_game_task_list, menu);
         return true;
     }
 

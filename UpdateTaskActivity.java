@@ -15,7 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 
-public class AddTaskActivity extends ActionBarActivity {
+public class UpdateTaskActivity extends ActionBarActivity {
 
     private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
     private static final long MINIMUM_TIME_BETWEEN_UPDATES = 1000; // in Milliseconds
@@ -33,41 +33,9 @@ public class AddTaskActivity extends ActionBarActivity {
     Intent intent;
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        intent = getIntent();
-
-        // Data from existing task if user wants to edit
-        huntIdVal = intent.getIntExtra("huntIdValue", 99);
-        taskIdVal = intent.getIntExtra("taskIdValue", 0);
-
-        // pass task data to NFC write activity
-        retrieveLocationButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-                final Intent changeActivityWriteNFC = new Intent(AddTaskActivity.this, WriteNFCActivity.class);
-
-                if(location != null){
-                    changeActivityWriteNFC.putExtra("taskIdValue", taskIdVal);
-                    changeActivityWriteNFC.putExtra("huntIdValue", huntIdVal);
-                    changeActivityWriteNFC.putExtra("passTaskName", tagName.getText().toString());
-                    changeActivityWriteNFC.putExtra("passTaskDesc", descriptionText.getText().toString());
-                    changeActivityWriteNFC.putExtra("passGPSLat", location.getLatitude());
-                    changeActivityWriteNFC.putExtra("passGPSLon", location.getLongitude());
-
-                    startActivity(changeActivityWriteNFC);
-                }
-            }
-        });
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_task);
+        setContentView(R.layout.activity_update_task);
 
         //Variable initialization
         retrieveLocationButton = (Button) findViewById(R.id.readyButton);
@@ -84,6 +52,44 @@ public class AddTaskActivity extends ActionBarActivity {
                 MINIMUM_DISTANCE_CHANGE_FOR_UPDATES,
                 new MyLocationListener()
         );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        intent = getIntent();
+
+        // Data from existing task if user wants to edit
+        huntIdVal = intent.getIntExtra("huntIdValue", 99);
+        taskIdVal = intent.getIntExtra("taskIdValue", 0);
+        taskName = MainActivity.dataBase.getTaskName(taskIdVal, huntIdVal);
+        taskDesc = MainActivity.dataBase.getTaskDesc(taskIdVal, huntIdVal);
+
+        // Setting fields to existing data
+        tagName.setText(taskName);
+        descriptionText.setText(taskDesc);
+
+        // pass task data to NFC write activity
+        retrieveLocationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+                final Intent changeActivityWriteNFC = new Intent(UpdateTaskActivity.this, UpdateNFCActivity.class);
+
+                if(location != null){
+                    changeActivityWriteNFC.putExtra("taskIdValue", taskIdVal);
+                    changeActivityWriteNFC.putExtra("huntIdValue", huntIdVal);
+                    changeActivityWriteNFC.putExtra("passTaskName", tagName.getText().toString());
+                    changeActivityWriteNFC.putExtra("passTaskDesc", descriptionText.getText().toString());
+                    changeActivityWriteNFC.putExtra("passGPSLat", location.getLatitude());
+                    changeActivityWriteNFC.putExtra("passGPSLon", location.getLongitude());
+
+                    startActivity(changeActivityWriteNFC);
+                }
+            }
+        });
     }
 
     private class MyLocationListener implements LocationListener {

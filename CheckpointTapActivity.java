@@ -28,6 +28,9 @@ public class CheckpointTapActivity extends ActionBarActivity {
     NfcAdapter mNfcAdapter;
     private static final String TAG = "NFC";
     int count = 0;
+    int huntIdVal, taskIdVal;
+    String taskNameToCompare;
+    Intent dataIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,9 +62,6 @@ public class CheckpointTapActivity extends ActionBarActivity {
                 test.setText("TRU count: " + Integer.toString(trucount));
             }
         });*/
-
-
-
     }
 
     @Override
@@ -106,13 +106,19 @@ public class CheckpointTapActivity extends ActionBarActivity {
             //Get the Text
             text = new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
             Log.d(TAG, "*********** NFC TAG = " + text);
-            //check text
-            if (text.equals("tru")){
-                test.setText(text);
 
+            // TODO compare the text
+            if (text.equals(taskNameToCompare)){
+                // TODO win
+                Intent moveToDescActivity = new Intent(CheckpointTapActivity.this, GameTaskDescriptionActivity.class);
+                moveToDescActivity.putExtra("taskIdValue", taskIdVal);
+                moveToDescActivity.putExtra("huntIdValue", huntIdVal);
+
+                startActivity(moveToDescActivity);
+            } else {
+                Toast.makeText(getApplicationContext(), "Wrong Tag.", Toast.LENGTH_LONG).show();
             }
         } catch (UnsupportedEncodingException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -151,8 +157,13 @@ public class CheckpointTapActivity extends ActionBarActivity {
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
+
         super.onResume();
+
+        dataIntent = getIntent();
+        huntIdVal = dataIntent.getIntExtra("huntIdValue", 0);
+        taskIdVal = dataIntent.getIntExtra("taskIdValue", 0);
+        taskNameToCompare = MainActivity.dataBase.getTaskName(taskIdVal,huntIdVal);
 
         Intent intent = new Intent(this, CheckpointTapActivity.class);
         intent.addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);

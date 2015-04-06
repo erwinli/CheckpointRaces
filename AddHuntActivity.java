@@ -33,7 +33,7 @@ public class AddHuntActivity extends Activity {
         doneBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Insert validation of text fields
+                // TODO check for input validation
                 Log.d("test", "clicked");
 
                 //Save user input into hunt table - db
@@ -41,7 +41,7 @@ public class AddHuntActivity extends Activity {
 
                 Intent nextActivity = new Intent(AddHuntActivity.this, AddTaskActivity.class);
                 nextActivity.putExtra("huntIdValue", currHuntId);
-
+                nextActivity.putExtra("taskIdValue", 0);
                 startActivity(nextActivity);
             }
         });

@@ -9,8 +9,8 @@ import android.nfc.NdefRecord;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
 import android.nfc.tech.Ndef;
-import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 
-public class WriteNFCActivity extends ActionBarActivity {
+public class UpdateNFCActivity extends ActionBarActivity {
 
     NfcAdapter mNfcAdapter;
     Tag mytag;
@@ -29,11 +29,10 @@ public class WriteNFCActivity extends ActionBarActivity {
     String taskName, taskDesc;
     double gpsLat, gpsLon;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_write_nfc);
+        setContentView(R.layout.activity_update_nfc);
 
         // Initializing variable with data from addTaskActivity
         intent = getIntent();
@@ -46,6 +45,8 @@ public class WriteNFCActivity extends ActionBarActivity {
 
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
 
+        Log.d("NFC NAME", taskName);
+
     }
 
     //NFC write implementation
@@ -53,25 +54,25 @@ public class WriteNFCActivity extends ActionBarActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-            mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+        mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 
-            Log.d("Fore", "Discovered tag");
-            try {
-                write(taskName, mytag);
-                Toast.makeText(this, "Writing to tag successful", Toast.LENGTH_LONG).show();
+        Log.d("Fore", "Discovered tag");
+        try {
+            write(taskName, mytag);
+            Toast.makeText(this, "Writing to tag successful", Toast.LENGTH_LONG).show();
 
-                // write info into DB
-                MainActivity.dataBase.insertTaskData(taskIdVal, huntIdVal, taskName, taskDesc, gpsLat, gpsLon);
+            // write info into DB
+            MainActivity.dataBase.updateTaskData(taskIdVal, huntIdVal, taskName, taskDesc, gpsLat, gpsLon);
 
-                Intent returnActivity = new Intent(WriteNFCActivity.this, TaskListActivity.class);
-                returnActivity.putExtra("huntIdValue", huntIdVal);
-                startActivity(returnActivity);
+            Intent returnActivity = new Intent(UpdateNFCActivity.this, TaskListActivity.class);
+            returnActivity.putExtra("huntIdValue", huntIdVal);
+            startActivity(returnActivity);
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (FormatException e) {
-                e.printStackTrace();
-            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (FormatException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -109,7 +110,7 @@ public class WriteNFCActivity extends ActionBarActivity {
     protected void onResume() {
         super.onResume();
 
-        Intent intent = new Intent(this, WriteNFCActivity.class);
+        Intent intent = new Intent(this, UpdateNFCActivity.class);
         intent.addFlags(Intent.FLAG_RECEIVER_REPLACE_PENDING);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
@@ -131,7 +132,7 @@ public class WriteNFCActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_write_nfc, menu);
+        getMenuInflater().inflate(R.menu.menu_update_nfc, menu);
         return true;
     }
 

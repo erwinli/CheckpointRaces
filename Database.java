@@ -124,10 +124,10 @@ public class Database {
     }
 
     //return GPS Latitude depending on task and hunt ID
-    public String getGPSLat(int task, int hunt){
+    public double getGPSLat(int task, int hunt){
 
         String gpsLat = "";
-
+        double output;
         String whereClause = _taskId + " = '" + Integer.toString(task) + "' and " + _huntId + " = '" + Integer.toString(hunt) + "'";
 
         open();
@@ -143,13 +143,15 @@ public class Database {
         gpsLat = c.getString(c.getColumnIndex(_gpsLat));
         close();
 
-        return gpsLat;
+        output = Double.parseDouble(gpsLat);
+        return output;
     }
 
     //return GPS longitude depending on task and hunt ID
-    public String getGPSLon(int task, int hunt){
+    public double getGPSLon(int task, int hunt){
 
         String gpsLon = "";
+        double output;
 
         String whereClause = _taskId + " = '" + Integer.toString(task) + "' and " + _huntId + " = '" + Integer.toString(hunt) + "'";
 
@@ -166,7 +168,9 @@ public class Database {
         gpsLon = c.getString(c.getColumnIndex(_gpsLon));
         close();
 
-        return gpsLon;
+        output = Double.parseDouble(gpsLon);
+
+        return output;
     }
 
     //return total number of task
@@ -204,6 +208,23 @@ public class Database {
         return loadSuccessful;
     }
 
+    //updates an existing task
+    public void updateTaskData(int taskID, int huntID, String taskName, String taskDesc, double gpsLat, double gpsLon){
+
+        ContentValues values = new ContentValues();
+
+        values.put(_taskId, taskID);
+        values.put(_huntId, huntID);
+        values.put(_taskName, taskName);
+        values.put(_taskDesc, taskDesc);
+        values.put(_gpsLat, gpsLat);
+        values.put(_gpsLon, gpsLon);
+
+        open();
+        db.update(TABLE_TASK, values, _taskId + " = '" + taskID + "' AND " + _huntId + " = '" + huntID + "'", null);
+        close();
+
+    }
     //Return hunt id depending on hunt ID
     public String getHuntId(int hunt){
 

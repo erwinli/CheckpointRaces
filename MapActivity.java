@@ -3,8 +3,8 @@ package com.li.tritonia.wildlife;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.graphics.Color;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -18,33 +18,116 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.util.Random;
+import java.util.List;
 
 
 public class MapActivity extends ActionBarActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, OnMapReadyCallback {
 
     final int RQS_GooglePlayServices = 1;
-    private final String TAG;
+    private String TAG = "GPSTEST";
     private TextView mLocationView;
     private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-    double lat;
-    double lon;
-    int maptype = 0;
+    double lat, lon;
+    int taskIdVal, huntIdVal;
+    double taskLat, taskLon;
     GoogleMap googleMap;
-    Button genLocation;
+    Button foundTaskBtn, moveMapBtn;
+    LocationRequest mLocationRequest;
+    Location mCurrentLocation;
+    Marker userMarker, taskMarker;
+    Intent intent;
+    Polyline polyline;
+    PolylineOptions polylineOptions;
+    MarkerOptions userMarkerOptions, taskMarkerOptions;
+    List<LatLng> points;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mLocationView = new TextView(this);
+        setContentView(R.layout.activity_map);
+
+        // Location awareness API
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+
+        MapFragment map = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        map.getMapAsync(this);
+
+        intent = getIntent();
+        taskIdVal = intent.getIntExtra("taskIdValue", 0);
+        huntIdVal = intent.getIntExtra("huntIdValue", 0);
+
+        taskLat = MainActivity.dataBase.getGPSLat(taskIdVal, huntIdVal);
+        taskLon = MainActivity.dataBase.getGPSLon(taskIdVal, huntIdVal);
+
+        foundTaskBtn = (Button)findViewById(R.id.foundTaskButton);
+        moveMapBtn = (Button)findViewById(R.id.moveMapToUserButton);
+
+        googleMap = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+
+    }
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
+        if (resultCode == ConnectionResult.SUCCESS){
+            Toast.makeText(getApplicationContext(), "Google Play services is available.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices).show();
+        }
+
+        foundTaskBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent moveToTapActivity = new Intent(MapActivity.this, CheckpointTapActivity.class);
+                moveToTapActivity.putExtra("taskIdValue", taskIdVal);
+                moveToTapActivity.putExtra("huntIdValue", huntIdVal);
+
+                startActivity(moveToTapActivity);
+            }
+        });
+
+        moveMapBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                moveToMe();
+            }
+        });
+
+        userMarkerOptions = new MarkerOptions().position(new LatLng(50.674129, -120.334982)).title("It's me");
+        taskMarkerOptions = new MarkerOptions().position(new LatLng(50.674129, -120.334982)).title("Find Me");
+
+        polylineOptions = new PolylineOptions().add(new LatLng(50.674129, -120.334982), new LatLng(taskLat, taskLon)).width(5).color(Color.RED);
+        polyline = googleMap.addPolyline(polylineOptions);
+        userMarker = googleMap.addMarker(userMarkerOptions);
+        taskMarker = googleMap.addMarker(taskMarkerOptions);
+    }
 
     @Override
     protected void onStop() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
         mGoogleApiClient.disconnect();
         super.onStop();
     }
@@ -56,48 +139,12 @@ public class MapActivity extends ActionBarActivity implements GoogleApiClient.Co
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        mLocationView = new TextView(this);
-        setContentView(R.layout.activity_map);
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-
-        MapFragment map = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-
-        map.getMapAsync(this);
-
-        genLocation = (Button)findViewById(R.id.buttonGen);
-
-        genLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                genLocation();
-            }
-        });
-
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
-    public void genLocation()
-    {
-        GoogleMap map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
-
-        Random r = new Random();
-        lon = (double)r.nextInt((180 - (-180) + 1) + 180);
-        lat = (double)r.nextInt((85 - (-85) + 1) + 85);
-
-        map.setMyLocationEnabled(true);
-    }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -111,27 +158,27 @@ public class MapActivity extends ActionBarActivity implements GoogleApiClient.Co
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected void onResume() {
-        int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
-        if (resultCode == ConnectionResult.SUCCESS){
-            Toast.makeText(getApplicationContext(), "Google Play services is available.",
-                    Toast.LENGTH_LONG).show();
-        } else {
-            GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices).show();
-        }
+    protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
 
-        super.onResume();
+    protected void startLocationUpdates() {
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,mLocationRequest,this);
+
+    }
+
+    protected void moveToMe(){
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(mCurrentLocation.getLatitude()
+                , mCurrentLocation.getLongitude()), 24));
     }
 
     @Override
     public void onConnected(Bundle bundle) {
-        mLocationRequest = LocationRequest.create();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-        mLocationRequest.setInterval(1000); // Update location every second
-        //LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, MapActivity.this);
 
-
+        createLocationRequest();
+        startLocationUpdates();
     }
 
     @Override
@@ -141,11 +188,16 @@ public class MapActivity extends ActionBarActivity implements GoogleApiClient.Co
 
     @Override
     public void onLocationChanged(Location location) {
-        mLocationView.setText("Location received: " + location.toString());
-        String locationTxt = "Latitude = " + Double.toString(location.getLatitude()) + ",Longitude = " + Double.toString(location.getLongitude());
-        Log.i(TAG, locationTxt);
         lat = location.getLatitude();
         lon = location.getLongitude();
+
+        List<LatLng> points = polyline.getPoints();
+        points.remove(1);
+        points.add(new LatLng(lat, lon));
+        polyline.setPoints(points);
+
+        userMarker.setPosition(new LatLng(lat, lon));
+        mCurrentLocation = location;
     }
 
 
@@ -183,28 +235,8 @@ public class MapActivity extends ActionBarActivity implements GoogleApiClient.Co
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        googleMap.addMarker(new MarkerOptions()
-                        .position(new LatLng(50, -120))
-                        .title("Marker")
-        );
+
+        googleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
     }
 
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
-    }
-
-    {
-        TAG = "Location101";
-    }
 }

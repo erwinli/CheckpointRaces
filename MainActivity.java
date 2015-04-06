@@ -1,27 +1,18 @@
 package com.li.tritonia.wildlife;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import java.util.ArrayList;
 
+public class MainActivity extends Activity {
 
-public class MainActivity extends ActionBarActivity {
-
-    SharedPreferences prefs;
-
-    Button setupBtn;
-    Button playBtn;
-    ArrayList<Task> taskList;
-    private static final String STATE_TASK = "state_task";
-    int idCount = 0;
+    private Button setupBtn;
+    private Button playBtn;
     public static Database dataBase;
 
     @Override
@@ -29,26 +20,19 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        prefs = this.getSharedPreferences("com.li.tritonia.wildlife", Context.MODE_PRIVATE);
-
-        if(savedInstanceState != null){
-            taskList = savedInstanceState.getParcelableArrayList(STATE_TASK);
-        }
-
+        // TODO refresh database for testing
         this.deleteDatabase("tasks.db");
 
+        //Var initialization
         dataBase = new Database(this);
-
-        taskList = new ArrayList<>();
-        gen();
-
         setupBtn = (Button)findViewById(R.id.setupButton);
         playBtn = (Button)findViewById(R.id.playButton);
 
-        final Intent playGame = new Intent(MainActivity.this, MapActivity.class);
-        final Intent setupGame = new Intent(MainActivity.this, SetupActivity.class);
+        // TODO generate test data
+        gen();
 
-        setupGame.putParcelableArrayListExtra("list", taskList);
+        final Intent playGame = new Intent(MainActivity.this, GameSelectActivity.class);
+        final Intent setupGame = new Intent(MainActivity.this, SetupActivity.class);
 
         setupBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,22 +46,6 @@ public class MainActivity extends ActionBarActivity {
                 startActivity(playGame);
             }
         });
-    }
-
-
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        prefs.edit().putInt("idCount", idCount).apply();
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-
-        outState.putParcelableArrayList(STATE_TASK, taskList);
     }
 
     @Override
@@ -102,15 +70,29 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    //test data
     public void gen(){
 
-        dataBase.insertTaskData(0, 1, "Owl", "Snow", 1.2, 1.5);
-        dataBase.insertTaskData(1, 1, "Bear", "Brown", 1.2, 1.5);
-        dataBase.insertTaskData(2, 1, "Bird", "Blue", 1.2, 1.3);
-        dataBase.insertHuntData(0, "first", "descr");
-        dataBase.insertHuntData(1, "second", "test");
-        dataBase.insertHuntData(2, "second", "test");
-        dataBase.insertHuntData(3, "second", "test");
+        dataBase.insertTaskData(0, 0, "Owl", "Snow", 1.2, 1.5);
+        dataBase.insertTaskData(1, 0, "Bear", "Brown", 1.2, 1.5);
+        dataBase.insertTaskData(2, 0, "Bird", "Blue", 1.2, 1.3);
+
+        dataBase.insertTaskData(0, 1, "Chicken", "Snow", 1.2, 1.5);
+        dataBase.insertTaskData(1, 1, "Worm", "Brown", 1.2, 1.5);
+        dataBase.insertTaskData(2, 1, "Bull", "Blue", 1.2, 1.3);
+
+        dataBase.insertTaskData(0, 2, "Tree", "Snow", 1.2, 1.5);
+        dataBase.insertTaskData(1, 2, "Toy", "Brown", 1.2, 1.5);
+        dataBase.insertTaskData(2, 2, "No", "Blue", 1.2, 1.3);
+
+        dataBase.insertTaskData(0, 3, "Pen", "Snow", 1.2, 1.5);
+        dataBase.insertTaskData(1, 3, "Lu", "Brown", 1.2, 1.5);
+        dataBase.insertTaskData(2, 3, "ho", "Blue", 1.2, 1.3);
+
+        dataBase.insertHuntData(0, "Greenman", "Green pasture hunt");
+        dataBase.insertHuntData(1, "Overhill", "Big hill hunt");
+        dataBase.insertHuntData(2, "Checkpoint", "Quick fire hunt");
+        dataBase.insertHuntData(3, "Summit", "Up hill hunt");
 
     }
 

@@ -1,12 +1,12 @@
 package com.li.tritonia.wildlife;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -14,69 +14,78 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 
-public class SetupActivity extends Activity {
+public class SetupActivity extends ActionBarActivity {
 
     private ListView listView;
     private ArrayAdapter arrayAdapter;
     private Button newGameBtn;
-    private ArrayList<Hunt> huntList;
-    private ArrayList<String> huntNameList;
-    private int idCount;
+    private Button doneBtn;
+    private ArrayList<String> gameNameList;
+    private int gameIdValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setup);
 
-        idCount = MainActivity.dataBase.numberOfHunts();
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
 
-        Log.d("HuntCount", Integer.toString(idCount));
-
+        //Variable initialization
+        gameIdValue = MainActivity.dataBase.numberOfHunts();
         newGameBtn = (Button)findViewById(R.id.newGameButton);
+        doneBtn = (Button)findViewById(R.id.doneButton);
         listView = (ListView)findViewById(R.id.task_list);
-
-        newGameBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                final Intent taskList = new Intent(SetupActivity.this, AddHuntActivity.class);
-
-                startActivity(taskList);
-            }
-        });
+        gameNameList = new ArrayList<>();
+        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, gameNameList);
 
     }
 
     public void initializeHuntList(){
+        gameNameList.clear();
 
-        huntList = new ArrayList<Hunt>();
-        huntNameList = new ArrayList<String>();
-
-        for(int i = 0; i <= idCount; i++){
-
-            Hunt obj = new Hunt();
-
-            obj.setHuntId(Integer.parseInt(MainActivity.dataBase.getHuntId(i)));
-            obj.setHuntName(MainActivity.dataBase.getHuntName(i));
-            obj.setHuntDesc(MainActivity.dataBase.getHuntDesc(i));
-
-            huntList.add(obj);
-
-            String name = new String();
-
+        for(int i = 0; i <= gameIdValue; i++){
+            String name;
+            // Pull each existing hunts name from DB
             name = MainActivity.dataBase.getHuntName(i);
-            huntNameList.add(name);
+            gameNameList.add(name);
         }
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        initializeHuntList();
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent taskListView = new Intent(SetupActivity.this, TaskListActivity.class);
+                taskListView.putExtra("huntIdValue", position);
+                startActivity(taskListView);
+            }
+        });
 
-        arrayAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, huntNameList);
+        // Display all existing hunts
+        initializeHuntList();
         listView.setAdapter(arrayAdapter);
+
+        // Move to Activity for new hunt information
+        newGameBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Intent taskList = new Intent(SetupActivity.this, AddHuntActivity.class);
+                taskList.putExtra("huntIdValue", listView.getCount() + 1);
+                startActivity(taskList);
+            }
+        });
+
+        doneBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent backToMenu = new Intent(SetupActivity.this, MainActivity.class);
+                startActivity(backToMenu);
+            }
+        });
     }
 
     @Override
